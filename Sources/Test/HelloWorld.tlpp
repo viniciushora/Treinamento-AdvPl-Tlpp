@@ -1,0 +1,98 @@
+#include "TOTVS.ch"
+
+#define CRLF chr(13)+chr(10)
+#define CRLF2 CRLF+CRLF
+
+Static cCep := "29.164-008"
+
+/*/{Protheus.doc} HelloWorld
+Meu primeiro programa em Advpl/Tlpp!
+@type function
+@version 12.1.33
+@author Giovani Soares
+@since 08/10/2022
+/*/
+User Function HelloWorld()
+
+    Local cNome := "" as character
+    Local nIdade := 0 as numeric
+
+    Private cEndereco_ := "" as character
+
+    cNome := ""
+    nIdade := 0
+    cEndereco_ := ""
+
+    fSetNome(@cNome)   // alterando variável local por referência de memória (usa o @ na passagem do parâmetro)
+    fSetIdade(@nIdade) // alterando variável local por referência de memória (usa o @ na passagem do parâmetro)
+    fSetEndereco()     // alterando variável privada (não é necessário o uso do @)
+
+    RpcSetEnv(;
+        /* cRpcEmp  */ "99",; // Grupo
+        /* cRpcFil  */ "01",; // Empresa + Filial + Unidade de Negócio
+        /* cEnvUser */,;
+        /* cEnvPass */,;
+        /* cEnvMod  */ "COM",; // Módulo (sem o SIGA na string)
+        /* cFunName */ "Teste",; // Nome da Função
+        /* aTables  */ {"SB1"} ; // Tabelas que serão carregas
+    )
+
+    fImprime(cNome, nIdade, cEndereco_)
+
+    if lImprimiu__
+        ConOut("IMPRIMIU!")
+    else
+        ConOut("NAO IMPRIMIU!")
+    endif
+
+    RpcClearEnv()
+
+    // if MsgYesNo('Deseja imprimir "Hello World"?',"Atenção!")
+    //     FwAlertSuccess("Hello World!")
+    // endif
+
+Return
+
+Static Function fImprime(cNome as character, nIdade as numeric, cEndereco_ as character)
+
+    Local lImprime := .F. as logical
+
+    Default cNome := ""
+    Default nIdade := 18
+    Default cEndereco_ := ""
+
+    if Type("lImprimiu__") == "U" // Undefined (boa prática para declaração de variáveis públicas)
+        Public lImprimiu__ := .F. as logical
+    endif
+
+    if !Empty(cNome) .And. !Empty(nIdade) .And. !Empty(cEndereco_)
+
+        if ( lImprime := MsgYesNo('Deseja imprimir seus dados?',"Atenção!") )
+
+            FwAlertInfo("Nome:" + cNome + CRLF +;
+                        "Idade: " + CValToChar(nIdade) + CRLF +;
+                        "Endereço: " + cEndereco_ + CRLF +;
+                        "CEP.: " + cCep)
+
+            lImprimiu__ := .T.
+
+        endif
+
+    endif
+
+Return
+
+// Define o nome
+Static Function fSetNome(cName as character)
+    cName := "Giovani Soares"
+Return
+
+// Define a idade
+Static Function fSetIdade(nAge as numeric)
+    nAge := 34
+Return
+
+// Define o endereço
+Static Function fSetEndereco()
+    cEndereco_ := "Av. Florianópolis, 745, Jd. Limoeiro, Serra-ES."
+Return

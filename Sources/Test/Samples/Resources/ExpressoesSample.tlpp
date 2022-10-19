@@ -1,0 +1,13 @@
+#include "TOTVS.ch"
+
+User Function ExpressoesSample()
+
+    Local nResultado := 0
+
+    nResultado := (a:=1, b:=2, c:=a+b)
+
+    cExpressao := "(a:=1, b:=2, c:=a+b)"
+
+    nResultado := &("(a:=1, b:=2, c:=a+b)")
+
+Return

@@ -1,0 +1,22 @@
+#include "TOTVS.ch"
+
+User Function Launcher(cFuncao)
+
+    // Default cFuncao := "U_ExpressoesSample()"
+    Default cFuncao := "U_CodeBlockSample()"
+
+    RpcSetEnv(;
+            /* cRpcEmp  */ "99",; // Grupo
+            /* cRpcFil  */ "01",; // Empresa + Filial + Unidade de Negócio
+            /* cEnvUser */,;
+            /* cEnvPass */,;
+            /* cEnvMod  */ "COM",; // Módulo (sem o SIGA na string)
+            /* cFunName */ "Teste",; // Nome da Função
+            /* aTables  */ {"SB1"} ; // Tabelas que serão carregas
+        )
+
+    &(cFuncao)
+
+    RpcClearEnv()
+
+Return

@@ -1,0 +1,33 @@
+#include "TOTVS.ch"
+
+User Function CodeBlockSample()
+
+    Local bMeuBloco := {||} as codeblock
+    Local nResultado := 0 as numeric
+
+    bMeuBloco := {|c| a:=1, b:=2, (a+b)*c } // 3
+
+    nResultado := Eval(bMeuBloco,2)
+
+Return
+
+User Function dasdasdad()
+
+    Local bGetEmail := {||} as codeblock
+
+    bGetEmail := {|| AllTrim(SA1->A1_EMAIL) }
+
+    Eval(bGetEmail)
+
+    DbSelectArea("SA1")
+    SA1->(DbSetOrder(1)) // A1_FILIAL+A1_COD+A1_LOJA
+    SA1->(DbGoTop())
+    If SA1->(MsSeek(xFilial("SA1")+"000001"+"01"))
+        lEncontrou :=.T.
+    EndIf
+
+Return
+
+
+
+
