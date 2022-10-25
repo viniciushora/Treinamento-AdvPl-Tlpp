@@ -1,0 +1,44 @@
+{
+	"version": "0.2.2",
+	"includes": [
+		"D:\\TOTVS\\Protheus\\include"
+	],
+	"permissions": {
+		"authorizationtoken": ""
+	},
+	"connectedServer": {},
+	"configurations": [
+		{
+			"id": "d17f2f8w41cl90541ubp91s0ylnc6",
+			"type": "totvs_server_protheus",
+			"name": "Localhost",
+			"port": 1231,
+			"address": "127.0.0.1",
+			"buildVersion": "7.00.210324P",
+			"secure": false,
+			"includes": [],
+			"environments": [
+				"gworks"
+			],
+			"username": "admin",
+			"environment": "gworks",
+			"token": "djM6ZDE3ZjJmOHc0MWNsOTA1NDF1YnA5MXMweWxuYzY6MToxMjcuMC4wLjE6MTIzMTowOjcuMDAuMjEwMzI0UDoz:djE6Z3dvcmtzOmFkbWluOkF1MEVQVDNVZDV2cUtzUEg5dm1oaFU3Z0dKSjVON3FOZlZwMjR1dnlJLzA9|djI6MTY2NTg0MzQwNTowOjE6MQ==.cJaePIwhcSp+PXfMfX1HtqUgmgwuXYg1LqmpjtlS/hcrUccEkTv+3iLfrFicriTYd8gOm8fUmi84wyp1aedxuLfLFLgbhpZrub3z/DW4wmTcRQ6BGcMMP9Bxf5JU7hyUAhq04dVpy/JW1q3/IdRlSSrSrJE/WLaDbk01gB7PrCcLO/Rw0E4na7anuFgfuYJ2cCdyLZxvRDkVyovckZT3E0MOsnDaGrgO19uBuEx2VRzEM/sJ8UhPEH4htvLvfZnA9egVWc6ck7t594vEOoXZdSVGRDQJu0TJ3oQLtwSIXUSIlF81l5FxCvxsVJEhqdadbHs2kTai7W6ESUe+fk+W6Q==",
+			"informations": {
+				"permissions": [],
+				"errorMessage": "",
+				"environmentDetectedType": "totvs_server_protheus",
+				"serverDetectedType": "totvs_server_protheus"
+			}
+		}
+	],
+	"savedTokens": [
+		[
+			"d17f2f8w41cl90541ubp91s0ylnc6:gworks",
+			{
+				"id": "d17f2f8w41cl90541ubp91s0ylnc6",
+				"token": "djM6ZDE3ZjJmOHc0MWNsOTA1NDF1YnA5MXMweWxuYzY6MToxMjcuMC4wLjE6MTIzMTowOjcuMDAuMjEwMzI0UDoz:djE6Z3dvcmtzOmFkbWluOkF1MEVQVDNVZDV2cUtzUEg5dm1oaFU3Z0dKSjVON3FOZlZwMjR1dnlJLzA9|djI6MTY2NTg0MzQwNTowOjE6MQ==.cJaePIwhcSp+PXfMfX1HtqUgmgwuXYg1LqmpjtlS/hcrUccEkTv+3iLfrFicriTYd8gOm8fUmi84wyp1aedxuLfLFLgbhpZrub3z/DW4wmTcRQ6BGcMMP9Bxf5JU7hyUAhq04dVpy/JW1q3/IdRlSSrSrJE/WLaDbk01gB7PrCcLO/Rw0E4na7anuFgfuYJ2cCdyLZxvRDkVyovckZT3E0MOsnDaGrgO19uBuEx2VRzEM/sJ8UhPEH4htvLvfZnA9egVWc6ck7t594vEOoXZdSVGRDQJu0TJ3oQLtwSIXUSIlF81l5FxCvxsVJEhqdadbHs2kTai7W6ESUe+fk+W6Q=="
+			}
+		]
+	],
+	"lastConnectedServer": "d17f2f8w41cl90541ubp91s0ylnc6"
+}
