@@ -1,0 +1,122 @@
+#Include "TOTVS.ch"
+
+Using Namespace Projects.WMS.ComparacaoEstoques.Data
+Using Namespace Projects.WMS.ComparacaoEstoques.Controller
+Using Namespace Projects.WMS.ComparacaoEstoques.Functions
+
+Namespace Projects.WMS.ComparacaoEstoques.Desig
+
+/*/{Protheus.doc} FSRL046
+Relatório de comparação entre os Estorques do Protheus e WMS.
+@type function
+@version 1.0
+@author Vinicius Corte
+@since 26/10/2022
+@param _cAlsPrt, character, alias referente à consulta de estoques do Protheus.
+@param _cAlsWms, character, alias referente à consulta de estoques do WMS.
+@param _bParam, codeblock, bloco de código para abertura da janela de parâmetros.
+@return logical, se .T., relatório executado com sucesso, se .F., com falhas.
+/*/
+User Function Design(_cAlsTRB as character, _cAlsRES as character, _bParam as codeblock) // Projects.WMS.ComparacaoEstoques.Design.U_Design FUNÇÃO PRINCIPAL DE GERAÇÃO DO RELATÓRIO
+
+    Local _oReport := nil as object
+
+    Private pcAlsTRB := ""   as character
+    Private pcAlsRES := ""   as character
+    Private pbParam  := {||} as codeblock
+
+    pcAlsTRB := _cAlsTRB
+    pcAlsRES := _cAlsRES
+    pbParam  := _bParam
+
+    _oReport:= ReportDef()
+    _oReport:PrintDialog()
+
+Return .T.
+
+
+/*/{Protheus.doc} ReportDef
+Define a estrutura de seções e campos que devem ser consideradas na impressão do relatório.
+@type function
+@version 1.0
+@author Vinicius Corte
+@since 26/10/2022
+@return object, objeto da classe TReport()
+/*/
+Static Function ReportDef()
+
+    Local _oReport    := nil  as object
+    Local _cTitle     := ""   as character
+    Local _oSection1
+    Local _oSection2
+    Local _oSection3
+
+    _cTitle := "Distribuição - Separação Antecipada"
+
+    // Criacao do componente de impressao
+    // ExpC1 : Nome do relatorio
+    // ExpC2 : Titulo
+    // ExpC3 : Pergunte
+    // ExpB4 : Bloco de codigo que sera executado na confirmacao da impressao
+    // ExpC5 : Descricao
+    _oReport := TReport():New("MTR210",_cTitle,{||fPergunte()},{|_oReport| ReportPrint(_oReport)},_cTitle)
+
+    _oReport:SetLandscape() // SETA O FUNDO DO RELATÓRIO
+    _oReport:SetDynamic() // SETA A DINÂMICA DO RELATÓRIO
+    _oReport:ShowParamPage() // MOSTRA A TELA DE PARÂMETROS
+    _oReport:lParamPage := .T. // SETA A TELA DE PARÂMETROS COMO VERDADEIRO
+
+    // Criacao da secao utilizada pelo relatorio: TRSection():New
+    //  - ExpO1 : Objeto TReport que a secao pertence
+    //  - ExpC2 : Descricao da seçao
+    //  - ExpA3 : Array com as tabelas utilizadas pela secao. A primeira tabela
+    //            sera considerada como principal para a seção.
+    //  - ExpA4 : Array com as Ordens do relatório
+    //  - ExpL5 : Carrega campos do SX3 como celulas
+    //            Default : False
+    //  - ExpL6 : Carrega ordens do Sindex
+    //            Default : False
+    // Criacao da celulas da secao do relatorio: TRCell():New
+    //  - ExpO1 : Objeto TSection que a secao pertence
+    //  - ExpC2 : Nome da celula do relatório. O SX3 será consultado
+    //  - ExpC3 : Nome da tabela de referencia da celula
+    //  - ExpC4 : Titulo da celula
+    //            Default : X3Titulo()
+    //  - ExpC5 : Picture
+    //            Default : X3_PICTURE
+    //  - ExpC6 : Tamanho
+    //            Default : X3_TAMANHO
+    //  - ExpL7 : Informe se o tamanho esta em pixel
+    //            Default : False
+    //  - ExpB8 : Bloco de código para impressao.
+    //            Default : ExpC2
+    _oSection1 := TRSection():New(_oReport,"Itens",{pcAlsTRB},/*aOrdem*/{"Default"}) // SETA AS INFORMAÇÕES DA SEÇÃO 1 (ITENS)
+
+    TRCell():New(_oSection1, "ZC0_NUM"    , pcAlsTRB, "Pré-Carga"  , /*cMask*/                  , /*nTamanho*/ 15 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->ZC0_NUM }*/    , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .F., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection1, "ZC0_DESC"   , pcAlsTRB, "Dsc.Carga"  , /*cMask*/                  , /*nTamanho*/ 40 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->ZC0_DESC }*/   , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .F., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection1, "ZC0_XSTATUS", pcAlsTRB, "St.Carga"   , /*cMask*/                  , /*nTamanho*/ 15 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->ZC0_XSTATUS }*/, /*cAlign*/ "LEFT"  , /*lLineBreak*/ .F., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection1, "ZC0_DTDIG"  , pcAlsTRB, "Dt.Digit."  , /*cMask*/                  , /*nTamanho*/ 15 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->ZC0_DTDIG }*/  , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .F., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection1, "C5_NUM"     , pcAlsTRB, "Pedido"     , /*cMask*/                  , /*nTamanho*/ 15 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->C5_NUM }*/     , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .F., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection1, "C5_XSTATUS" , pcAlsTRB, "St.Pedido"  , /*cMask*/                  , /*nTamanho*/ 30 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->C5_XSTATUS }*/ , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .F., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection1, "C5_EMISSAO" , pcAlsTRB, "Dt.Pedido"  , /*cMask*/                  , /*nTamanho*/ 15 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->C5_EMISSAO }*/ , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .F., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection1, "C5_XCODCLI" , pcAlsTRB, "Cd.Cliente" , /*cMask*/                  , /*nTamanho*/ 15 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->C5_XCODCLI }*/ , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .F., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection1, "A1_NOME"    , pcAlsTRB, "Nm.Cliente" , /*cMask*/                  , /*nTamanho*/ 30 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->A1_NOME }*/    , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .T., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection1, "C6_ITEM"    , pcAlsTRB, "Item"       , /*cMask*/                  , /*nTamanho*/ 15 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->C6_ITEM }*/    , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .F., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection1, "C6_PRODUTO" , pcAlsTRB, "Cd.Produto" , /*cMask*/                  , /*nTamanho*/ 15 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->C6_PRODUTO }*/ , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .F., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection1, "C6_XDESC"   , pcAlsTRB, "Dsc.Produto", /*cMask*/                  , /*nTamanho*/ 40 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->C6_XDESC }*/   , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .T., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection1, "C6_QTDVEN"  , pcAlsTRB, "Qt.Venda"   , PesqPict("SC6","C6_QTDVEN"), /*nTamanho*/ 15 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->C6_QTDVEN }*/  , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .F., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+
+    _oSection2 := TRSection():New(_oReport,"Componentes",{pcAlsTRB},/*aOrdem*/{"Default"}) // SETA AS INFORMAÇÕES DA SEÇÃO 2 (COMPONENTES)
+    TRCell():New(_oSection2, "G1_COMP"    , pcAlsTRB, "Cd.Comp."   , /*cMask*/                  , /*nTamanho*/ 15 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->G1_COMP }*/    , /*cAlign*/ "CENTER", /*lLineBreak*/ .F., /*cHeaderAlign*/ "CENTER",,,.T.) // SETA CAMPO
+    TRCell():New(_oSection2, "B1_DESC"    , pcAlsTRB, "Dsc.Comp."  , /*cMask*/                  , /*nTamanho*/ 40 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->B1_DESC }*/    , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .T., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection2, "G1_XQUANT"  , pcAlsTRB, "Qtd.Comp."  , PesqPict("SC6","C6_QTDVEN"), /*nTamanho*/ 15 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->G1_XQUANT }*/  , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .F., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection2, "Spacer"     , pcAlsTRB, Space(80)    , /*cMask*/                  , /*nTamanho*/ 120, /*lPixel*/ .T., /*{|| (pcAlsTRB)->G1_XQUANT }*/  , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .F., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+
+    _oSection3 := TRSection():New(_oReport,"Resumo",{pcAlsRES},/*aOrdem*/{"Default"}) // SETA A SEÇÃO 3 (RESUMO GERAL)
+    TRCell():New(_oSection3, "G1_COMP"    , pcAlsRES, "Cd.Comp."   , /*cMask*/                  , /*nTamanho*/ 15 , /*lPixel*/ .T., /*{|| (pcAlsRES)->G1_COMP }*/    , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .F., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection3, "B1_DESC"    , pcAlsRES, "Dsc.Comp."  , /*cMask*/                  , /*nTamanho*/ 60 , /*lPixel*/ .T., /*{|| (pcAlsRES)->B1_DESC }*/    , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .T., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection3, "G1_XQUANT"  , pcAlsRES, "Qtd.Comp."  , PesqPict("SC6","C6_QTDVEN"), /*nTamanho*/ 15 , /*lPixel*/ .T., /*{|| (pcAlsRES)->G1_XQUANT }*/  , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .F., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection3, "XX_SIG"     , pcAlsTRB, Space(40)    , /*cMask*/                  , /*nTamanho*/ 50 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->G1_XQUANT }*/  , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .F., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+    TRCell():New(_oSection3, "Spacer"     , pcAlsTRB, Space(40)    , /*cMask*/                  , /*nTamanho*/ 50 , /*lPixel*/ .T., /*{|| (pcAlsTRB)->G1_XQUANT }*/  , /*cAlign*/ "LEFT"  , /*lLineBreak*/ .F., /*cHeaderAlign*/ "LEFT"  ,,,.T.) // SETA CAMPO
+
+Return _oReport

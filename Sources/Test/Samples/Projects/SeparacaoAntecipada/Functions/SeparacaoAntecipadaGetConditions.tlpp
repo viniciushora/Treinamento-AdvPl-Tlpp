@@ -1,0 +1,31 @@
+#Include "TOTVS.ch"
+
+Namespace Projects.SeparacaoAntecipada.Functions // NOME DO NAMESPACE
+
+/*/{Protheus.doc} GetConditions
+Monta as cláusulas da condição where a ser executada na consulta SQL.
+@type function
+@version 1.0
+@author Vinicius Corte
+@since 26/10/2022
+@param _aParam, array, array de parâmetros.
+@return array, lista de expressão para a cláusula Where.
+/*/
+User Function GetConditions(cWhStCarga as character, cWhereGrupo as character, aConditions as array)
+
+    cWhStCarga := "%1=1%" // DUVIDA
+    cWhereGrupo := "%1=1%" // DUVIDA
+
+    If aConditions[2] == 2 // STATUS PEDIDO = 2 = PEDIDOS FORA DE CARGA
+        cWhStCarga := "% ZC0.ZC0_NUM IS NULL %" // pedidos fora de carga
+    EndIf
+
+    If aConditions[2] == 3 // STATUS PEDIDO = 2 = PEDIDOS EM CARGA
+        cWhStCarga := "% ZC0.ZC0_NUM IS NOT NULL %" // pedidos em carga
+    EndIf
+
+    If !Empty(scGrupo) // GRUPO NÃO VAZIO
+        cWhereGrupo := "%" + "SBM.BM_GRUPO IN('" + StrTran(AllTrim(scGrupo),";","','") + "')" + "%"
+    EndIf
+
+Return

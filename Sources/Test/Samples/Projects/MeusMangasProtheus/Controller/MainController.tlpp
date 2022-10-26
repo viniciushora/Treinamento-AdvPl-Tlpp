@@ -1,0 +1,8 @@
+#include "TOTVS.ch"
+
+Namespace Projects.WMS.ComparacaoEstoques.Controller 
+
+User Function Main()
+
+
+Return

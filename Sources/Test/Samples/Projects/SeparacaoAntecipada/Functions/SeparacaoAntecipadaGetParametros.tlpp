@@ -1,0 +1,121 @@
+#Include "TOTVS.ch"
+
+#Define ORDEM_CARGA_NF 1
+#Define ORDEM_CLIENTE 2
+#Define ORDEM_TRANSP 3
+
+Static saParam := {} as array
+
+Namespace Projects.WMS.SeparacaoAntecipada.Functions
+
+/*/{Protheus.doc} SetParametros
+Abre janela de parâmetros para a interface com o usuário.
+@type function
+@version 1.0
+@author Vinicius Corte
+@since 26/10/2022
+@return logical, se .T., o usuário fez a confirmação da jalena de parâmetros, se .F. não fez a confirmação.
+/*/
+User Function SetParametros()
+
+    Local _aParam := {} as array
+    Local _aRetParam := {} as array
+    Local _cDtCarDe := "01" + "/" + Month2Str(DDATABASE) + "/" + Year2Str(DDATABASE) // primeiro dia do mês corrente
+    Local _cDtCarAte := cValToChar(Last_Day(DDATABASE)) + "/" + Month2Str(DDATABASE) + "/" + Year2Str(DDATABASE) // último dia do mês corrente
+    Local _lRet := .F. as logical
+
+    if Type("gcMVSource") == "U"
+        gcMVSource := ""
+    endif
+
+    if Type("gcMVMult") == "U"
+        gcMVMult := ""
+    endif
+
+    gcMVSource += FunName() + ";"
+    gcMVMult += "MV_PAR13" + ";"
+
+    saCbDetalhes  := if(Empty(saCbDetalhes),{"Sim","Não"},saCbDetalhes)
+    saCbStsPedido := if(Empty(saCbStsPedido),{"Todos","Fora de carga","Em carga"},saCbStsPedido)
+
+    aAdd(_aParam,{02,"Imp. Detalhes",snDetalhes,saCbDetalhes, 65,".T.",.F.}) // 1
+    aAdd(_aParam,{02,"St.Pedido"    ,snStPedido,saCbStsPedido,65,".T.",.F.}) // 2
+    aAdd(_aParam,{01,"Pedido de"        ,Space(6)        ,/*cPicture*/,".T.",/*cF3*/"SC5",".T.",65,.F.}) // 3
+    aAdd(_aParam,{01,"Pedido até"       ,PadL('Z',6,'Z') ,/*cPicture*/,".T.",/*cF3*/"SC5",".T.",65,.F.}) // 4
+    aAdd(_aParam,{01,"Dt. Pedido de"    ,cToD(_cDtCarDe) ,/*cPicture*/,".T.",/*cF3*/     ,".T.",50,.F.}) // 5
+    aAdd(_aParam,{01,"Dt. Pedido até"   ,cToD(_cDtCarAte),/*cPicture*/,".T.",/*cF3*/     ,".T.",50,.F.}) // 6
+    aAdd(_aParam,{01,"Pré-Carga de"     ,Space(6)        ,/*cPicture*/,".T.",/*cF3*/"ZC0",".T.",65,.F.}) // 7
+    aAdd(_aParam,{01,"Pré-Carga até"    ,PadL('Z',6,'Z') ,/*cPicture*/,".T.",/*cF3*/"ZC0",".T.",65,.F.}) // 8
+    aAdd(_aParam,{01,"Dt. Pré-Carga de" ,cToD(_cDtCarDe) ,/*cPicture*/,".T.",/*cF3*/     ,".T.",50,.F.}) // 9
+    aAdd(_aParam,{01,"Dt. Pré-Carga até",cToD(_cDtCarAte),/*cPicture*/,".T.",/*cF3*/     ,".T.",50,.F.}) // 10
+    aAdd(_aParam,{01,"Produto de"       ,Space(15)       ,/*cPicture*/,".T.",/*cF3*/"SB1",".T.",65,.F.}) // 11
+    aAdd(_aParam,{01,"Produto até"      ,PadL('Z',15,'Z'),/*cPicture*/,".T.",/*cF3*/"SB1",".T.",65,.F.}) // 12
+    aAdd(_aParam,{01,"Grupo Prod."      ,Space(250)      ,/*cPicture*/,".T.",/*cF3*/"SBM",".T.",65,.F.}) // 13
+
+    // 1 - <aParametros> - Vetor com as configurações
+    // 2 - <cTitle>      - Título da janela
+    // 3 - <aRet>        - Vetor passador por referencia que contém o retorno dos parâmetros
+    // 4 - <bOk>         - Code block para validar o botão Ok
+    // 5 - <aButtons>    - Vetor com mais botões além dos botões de Ok e Cancel
+    // 6 - <lCentered>   - Centralizar a janela
+    // 7 - <nPosX>       - Se não centralizar janela coordenada X para início
+    // 8 - <nPosY>       - Se não centralizar janela coordenada Y para início
+    // 9 - <oDlgWizard>  - Utiliza o objeto da janela ativa
+    //10 - <cLoad>       - Nome do perfil se caso for carregar
+    //11 - <lCanSave>    - Salvar os dados informados nos parâmetros por perfil
+    //12 - <lUserSave>   - Configuração por usuário
+    If ParamBox(_aParam, "FSRL044 - Parâmetros", @_aRetParam,/*bOk*/,/*aButtons*/,/*lCentered*/,/*nPosX*/,/*nPosY*/,;
+                /*oDlgWizard*/,/*cLoad*/,/*lCanSave*/.T.,/*lUserSave*/.T.) // MOSTRA A TELA DE PARÂMETROS PARA PREENCHER
+
+        aAdd(saParam, fGeComboOption(_aRetParam[1],saCbDetalhes)) // PERGUNTA 1
+        aAdd(saParam, fGeComboOption(_aRetParam[2],saCbStsPedido)) // PERGUNTA 2
+        aAdd(saParam, _aRetParam[3]) // PERGUNTA 3
+        aAdd(saParam,  _aRetParam[4]) // PERGUNTA 4
+        aAdd(saParam, _aRetParam[5]) // PERGUNTA 5
+        aAdd(saParam, _aRetParam[6]) // PERGUNTA 6
+        aAdd(saParam, _aRetParam[7]) // PERGUNTA 7
+        aAdd(saParam, _aRetParam[8]) // PERGUNTA 8
+        aAdd(saParam, _aRetParam[9]) // PERGUNTA 9
+        aAdd(saParam, _aRetParam[10]) // PERGUNTA 10
+        aAdd(saParam, _aRetParam[11]) // PERGUNTA 11
+        aAdd(saParam, _aRetParam[12]) // PERGUNTA 12
+        aAdd(saParam, _aRetParam[13]) // PERGUNTA 13
+
+        _lRet := .T.
+
+    EndIf
+
+Return _lRet // RETURNA O VALIDADOR DE EXECUÇÃO
+
+/*/{Protheus.doc} GetParametros
+Retorna o conteúdo da janela de parâmetros.
+@type function
+@version 1.0
+@author Vinicius Corte
+@since 26/10/2022
+@return array, lista de conteúdo dos parâmetros.
+/*/
+User Function GetParametros()
+    Local _aParam := {} as array
+    _aParam := aClone(saParam)
+Return _aParam
+
+/*/{Protheus.doc} fGeComboOption
+Função auxiliar para normalização do retorno do combo na janela de parâmetros, considerando que:
+ - Retorno quando o usuário não seleciona nenhuma opção = numeric, conforme inicializador do parâmetro;
+ - Retorno quando o usuário seleciona alguma opção = character, conforme escolha do usuáiro.
+@type function
+@version 12.1.33
+@author Vinicius Corte
+@since 26/10/2022
+@param xOpc, variant, opção do combo conforme retorno do parambox
+@param aComboBx, array, array de opções do combo
+@return numeric, valor normalizado
+/*/
+Static Function fGeComboOption(xOpc as variant, aComboBx as array)
+    Local nOption := 0 as numeric
+    do case
+        case ValType(xOpc) == "C" ; nOption := aScan(aComboBx,xOpc)
+        case ValType(xOpc) == "N" ; nOption := xOpc
+    endcase
+Return nOption

@@ -1,0 +1,168 @@
+#Include "TOTVS.ch"
+
+Using Namespace Projects.WMS.SeparacaoAntecipada.Functions
+Using Namespace Projects.WMS.SeparacaoAntecipada.Design
+Using Namespace Projects.WMS.SeparacaoAntecipada.Data
+
+Namespace Projects.SeparacaoAntecipada.Controller
+
+/*/{Protheus.doc} Main
+Controller principal do projeto.
+@type function
+@version 1.0
+@author Vinicius Corte
+@since 26/10/2022
+/*/
+User Function Main()
+
+    Local _aArea    := {}   as array
+    Local _bParam   := {||} as codeblock
+    Local _cAlsTRB  := ""   as character
+    Local _cAlsRES  := ""   as character
+
+    _aArea := GetArea()
+
+    _cAlsTRB := U_GetAliasTRB()
+
+    _cAlsRES := U_GetAliasRES()
+
+    _bParam := {|| Projects.SeparacaoAntecipada.Controller.U_Parametros() }
+
+    U_Design(_cAlsTRB,  _cAlsRES, _bParam)
+
+    U_CloseQueryTRB()
+
+    RestArea(_aArea)
+
+Return
+
+/*/{Protheus.doc} Parametros
+Controler da janela de parâmetros.
+@type function
+@version 1.0
+@author Vinicius Corte
+@since 26/10/2022
+/*/
+User Function Parametros()
+
+    Local _aParam      := {}  as array
+    Local _lRet        := .F. as logical
+    Local _cWhStCarga as character
+    Local _cWhereGrupo as character
+
+    if U_SetParametros()
+
+        _aParam := U_GetParametros()
+
+        _aConditions := U_GetConditions(@_cWhStCarga, @_cWhereGrupo, _aParam)
+
+        U_SetConditionsTRB(_cWhStCarga, _cWhereGrupo)
+
+        _lRet := .T.
+
+    endif
+
+Return _lRet
+
+/*/{Protheus.doc} ReportPrint
+Popula os dados nas seções e campos correspondentes.
+@type function
+@version 1.0
+@author Vinicius Corte
+@since 26/10/2022
+@param _oReport, object, objeto da classe TReport()
+/*/
+Static Function ReportPrint(_oReport as object)
+
+    Local _oSection1 := _oReport:Section(1)
+    Local _oSection2 := _oReport:Section(2)
+    Local _oSection3 := _oReport:Section(3)
+    Local _cPedido   := ""
+
+    if snDetalhes == 1 // 1-imprime detalhes / 2-não imprime detalhes 
+
+        _oReport:PrintText(Space(1)+"DETALHES",,,CLR_BLACK,,,)
+        _oReport:FatLine()
+
+        U_RunQueryTRB(_oSection1)
+
+        while !(pcAlsTRB)->(EOF())
+
+            if _cPedido != (pcAlsTRB)->(C5_NUM+C6_ITEM)
+
+                if !Empty(_cPedido)
+                    _oSection2:Finish() // finaliza a section 2 e imprime os totalizadores conforme definido em TRBreak e TRFunction
+                    _oSection1:Finish() // finaliza a section 1 e imprime os totalizadores conforme definido em TRBreak e TRFunction
+                endif
+
+                _oReport:SkipLine(2) 
+
+                _oSection1:Init()
+
+                _oSection1:Cell("ZC0_NUM"):SetValue((pcAlsTRB)->ZC0_NUM)
+                _oSection1:Cell("ZC0_DESC"):SetValue((pcAlsTRB)->ZC0_DESC)
+                _oSection1:Cell("ZC0_XSTATUS"):SetValue((pcAlsTRB)->ZC0_XSTATUS)
+                _oSection1:Cell("ZC0_DTDIG"):SetValue((pcAlsTRB)->ZC0_DTDIG)
+                _oSection1:Cell("C5_NUM"):SetValue((pcAlsTRB)->C5_NUM) 
+                _oSection1:Cell("C5_EMISSAO"):SetValue((pcAlsTRB)->C5_EMISSAO)
+                _oSection1:Cell("C5_XCODCLI"):SetValue((pcAlsTRB)->C5_XCODCLI)
+                _oSection1:Cell("A1_NOME"):SetValue((pcAlsTRB)->A1_NOME)
+                _oSection1:Cell("C6_ITEM"):SetValue((pcAlsTRB)->C6_ITEM)
+                _oSection1:Cell("C6_PRODUTO"):SetValue((pcAlsTRB)->C6_PRODUTO)
+                _oSection1:Cell("C6_XDESC"):SetValue((pcAlsTRB)->C6_XDESC)
+                _oSection1:Cell("C6_QTDVEN"):SetValue((pcAlsTRB)->C6_QTDVEN)
+
+                _oSection1:PrintLine()
+
+                _cPedido := (pcAlsTRB)->(C5_NUM+C6_ITEM)
+
+                _oSection2:Init()
+
+            endif
+
+            _oSection2:Cell("G1_COMP"):SetValue((pcAlsTRB)->G1_COMP)
+            _oSection2:Cell("B1_DESC"):SetValue((pcAlsTRB)->B1_DESC) 
+            _oSection2:Cell("G1_XQUANT"):SetValue((pcAlsTRB)->G1_XQUANT)
+
+            _oSection2:PrintLine()
+
+            (pcAlsTRB)->(DbSkip())
+
+        enddo
+
+        _oSection2:Finish() // finaliza a section 2 e imprime os totalizadores conforme definido em TRBreak e TRFunction
+        _oSection1:Finish() // finaliza a section 1 e imprime os totalizadores conforme definido em TRBreak e TRFunction
+
+        _oReport:EndPage(/*lFooter*/.F.)
+        _oReport:StartPage() // cria nova página
+
+    endif
+
+    _oReport:PrintText(Space(1)+"RESUMO",,,CLR_BLACK,,,) 
+    _oReport:FatLine() 
+    _oReport:SkipLine(2)
+
+    fQueryRES(_oSection3) 
+
+    _oSection3:Init() 
+
+    while !(pcAlsRES)->(EOF()) // ENQUANTO O EOF FOR FALSO (ALIAS AINDA RODANDO)
+
+        _oReport:IncMeter() // incrementa régua de processamento
+
+        _oSection3:Cell("G1_COMP"):SetValue((pcAlsRES)->G1_COMP) // PREENCHE O CAMPO
+        _oSection3:Cell("B1_DESC"):SetValue((pcAlsRES)->B1_DESC) // PREENCHE O CAMPO
+        _oSection3:Cell("G1_XQUANT"):SetValue((pcAlsRES)->G1_XQUANT) // PREENCHE O CAMPO
+        _oSection3:Cell("XX_SIG"):SetValue(PadL('',30,'_')) // PREENCHE O CAMPO
+
+        _oSection3:PrintLine() // PRINTA UMA LINHA
+
+        (pcAlsRES)->(DbSkip()) // SKIPA UM REGISTRO
+
+    enddo // TERMINA O WHILE
+
+    _oSection3:Finish() // finaliza a section 3 e imprime os totalizadores conforme definido em TRBreak e TRFunction
+
+    _oReport:FatLine() //_oReport:ThinLine()
+
+Return

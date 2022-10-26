@@ -1,0 +1,140 @@
+#Include "TOTVS.ch"
+
+Namespace Projects.WMS.ComparacaoEstoques.Data 
+
+Static scAlias := "" as character
+Static saConditions := {} as array
+Static scWhStCarga := "" as character
+Static scWhereGrupo := "" as character
+
+/*/{Protheus.doc} GetAliasTRB
+Pega o alias da tabela TRB
+@type function
+@version 12.1.33
+@author Vinicius Corte
+@since 26/10/2022
+@param _cAlias, character, alias para acesso ao resultado da consulta (informar via ref. de memória).
+@return logical, se .T., possui dados e .F. não possui.
+/*/
+User Function GetAliasTRB() // Projects.SeparacaoAntecipada.Data.U_GetAliasSaldosProtheus
+    Local _cAlias := "" as character
+    if Empty(scAlias)
+        _cAlias := GetNextAlias()
+        scAlias := _cAlias
+    else
+        _cAlias := scAlias
+    endif
+Return scAlias
+
+User Function CloseQueryTRB() // Projects.WMS.ComparacaoEstoques.Data.U_CloseQuerySaldosProtheus
+    if Select(scAlias) > 0
+        (scAlias)->(DbCloseArea())
+    endif
+    scAlias := ""
+Return
+
+User Function SetConditionsTRB(_cWhStCarga as character, _cWhereGrupo as character)
+    scWhStCarga := _cWhStCarga
+    scWhereGrupo := _cWhereGrupo
+Return
+
+User Function HasWhereTRB()
+    Local _lWhere := .F. as logical
+    if Len(saConditions) > 0
+        _lWhere := .T.
+    endif
+Return _lWhere
+
+Static Function RunQueryTRB(_oSection1 as object)
+
+    _oSection1:BeginQuery()
+
+    BEGINSQL Alias scAlias
+    %noParser%
+
+    SELECT
+         ZC0.ZC0_NUM
+        ,ZC0.ZC0_DESC
+        ,ZC0.ZC0_STATUS
+        ,CASE ZC0.ZC0_STATUS
+            WHEN '0' THEN 'ABERTA'
+            WHEN '1' THEN 'MONTADA'
+            WHEN '2' THEN 'EM SEPARAÇÃO'
+            WHEN '3' THEN 'ESTACIONADA'
+            WHEN '4' THEN 'APTA A FATURAR'
+            WHEN '5' THEN 'PARCIALMENTE FATURADA'
+            WHEN '6' THEN 'TOTALMENTE FATURADA'
+        END AS ZC0_XSTATUS
+        ,ZC0.ZC0_DTDIG
+        ,SC5.C5_NUM
+        ,SC5.C5_YSTATUS
+        ,CASE SC5.C5_YSTATUS
+            WHEN '01' THEN '01-Em Carteira'
+            WHEN '09' THEN '09-Blq. p/ Alçada'
+            WHEN '10' THEN '10-Recusado p/ Alçada'
+            WHEN '11' THEN '11-Blq. Comercial'
+            WHEN '12' THEN '12-Recusado p/ Comercial'
+            WHEN '20' THEN '20-Blq. Estoque'
+            WHEN '30' THEN '30-Blq. Crédito'
+            WHEN '31' THEN '31-Recusado p/ Credito'
+            WHEN '40' THEN '40-Blq. WMS'
+            WHEN '45' THEN '45-Aguardando Data Disp.'
+            WHEN '50' THEN '50-Apto a Separar'
+            WHEN '51' THEN '51-Em Separação'
+            WHEN '80' THEN '80-Apto a Faturar'
+            WHEN '81' THEN '81-Faturamento Parcial'
+            WHEN '82' THEN '82-Faturamento Total'
+            WHEN '90' THEN '90-Eliminado Resíduo'
+            ELSE ' '
+        END AS C5_XSTATUS
+        ,(SC5.C5_CLIENTE + '-' + SC5.C5_LOJACLI) AS C5_XCODCLI
+	    ,( 	SELECT A1_NOME
+            FROM %table:SA1% SA1
+            WHERE SA1.A1_FILIAL = ' '
+                AND SA1.A1_COD = SC5.C5_CLIENTE 
+                AND SA1.A1_LOJA = SC5.C5_LOJACLI
+                AND SA1.%notDel% ) A1_NOME
+        ,SC6.C6_ITEM
+        ,SC6.C6_PRODUTO
+        ,( 	SELECT TRIM(SB1.B1_DESC)
+            FROM %table:SB1% SB1
+            WHERE SB1.B1_FILIAL = ' '
+                AND SB1.B1_COD = SC6.C6_PRODUTO
+                AND SB1.%notDel% ) AS C6_XDESC
+        ,SC6.C6_QTDVEN
+        ,SG1.G1_COMP
+        ,TRIM(SB1.B1_DESC) AS B1_DESC
+        ,ROUND(SG1.G1_QUANT*SC6.C6_QTDVEN,6) AS G1_XQUANT
+    FROM %table:SC5% SC5
+    JOIN %table:SC6% SC6 ON (SC6.C6_FILIAL = SC5.C5_FILIAL AND SC6.C6_NUM = SC5.C5_NUM AND SC6.%notDel%)
+    JOIN %table:SC9% SC9 ON (SC9.C9_FILIAL = SC5.C5_FILIAL AND SC9.C9_PEDIDO = SC6.C6_NUM AND SC9.C9_PRODUTO = SC6.C6_PRODUTO AND SC9.C9_ITEM = SC6.C6_ITEM AND SC9.%notDel%)
+    JOIN %table:SA1% SA1 ON (SA1.A1_FILIAL = ' ' AND SA1.A1_COD = SC9.C9_CLIENTE AND SA1.A1_LOJA = SC9.C9_LOJA AND SA1.%notDel%)
+    JOIN %table:SG1% SG1 ON (SG1.G1_FILIAL = ' ' AND SG1.G1_COD = SC6.C6_PRODUTO AND SG1.%notDel%)
+    JOIN %table:SB1% SB1 ON (SB1.B1_FILIAL = ' ' AND SB1.B1_COD = SG1.G1_COMP AND SB1.%notDel%)
+    JOIN %table:SBM% SBM ON (SBM.BM_FILIAL = ' ' AND SBM.BM_GRUPO = SB1.B1_GRUPO AND SBM.%notDel%)
+    LEFT JOIN %table:ZC0% ZC0 ON (ZC0.ZC0_FILIAL = SC9.C9_FILIAL AND ZC0.ZC0_NUM = SC9.C9_YPRECRG AND ZC0.%notDel%)
+    WHERE SC5.C5_FILIAL = %xFilial:SC5%
+        AND SC5.C5_YSTATUS = '50' // apto a separar
+        AND SC5.C5_NUM BETWEEN %exp:saConditions[5]% AND %exp:saConditions[6]%
+        AND SC5.C5_EMISSAO BETWEEN %exp:saConditions[7]% AND %exp:saConditions[8]%
+        AND SB1.B1_COD BETWEEN %exp:saConditions[13]% AND %exp:saConditions[14]%
+        AND (ZC0.ZC0_STATUS IS NULL OR ZC0.ZC0_STATUS = '0')
+        AND (ZC0.ZC0_NUM IS NULL OR ZC0.ZC0_NUM BETWEEN %exp:saConditions[9]% AND %exp:saConditions[10]%)
+        AND (ZC0.ZC0_DTDIG IS NULL OR ZC0.ZC0_DTDIG BETWEEN %exp:saConditions[11]% AND %exp:saConditions[12]%)
+        AND %exp:scWhStCarga%
+        AND %exp:scWhereGrupo%
+        AND SC5.%notDel%
+    ORDER BY SC9.C9_YPRECRG, SC9.C9_PEDIDO, SC9.C9_PRODUTO, SC9.C9_ITEM
+    ENDSQL
+
+    _oSection1:EndQuery()
+
+    DbSelectArea(scAlias)
+
+    (scAlias)->(DbGoTop()) 
+
+    if !(scAliass)->(EOF()) 
+        _lRet := .T.
+    endif
+
+Return _lRet
