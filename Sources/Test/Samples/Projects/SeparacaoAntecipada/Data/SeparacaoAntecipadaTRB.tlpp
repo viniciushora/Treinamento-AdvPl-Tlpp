@@ -33,7 +33,8 @@ User Function CloseQueryTRB() // Projects.WMS.ComparacaoEstoques.Data.U_CloseQue
     scAlias := ""
 Return
 
-User Function SetConditionsTRB(_cWhStCarga as character, _cWhereGrupo as character)
+User Function SetConditionsTRB(_cWhStCarga as character, _cWhereGrupo as character, _aConditions as array)
+    saConditions := _aConditions
     scWhStCarga := _cWhStCarga
     scWhereGrupo := _cWhereGrupo
 Return

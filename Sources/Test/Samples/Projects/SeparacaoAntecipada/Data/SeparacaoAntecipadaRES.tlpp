@@ -33,7 +33,8 @@ User Function CloseQueryRES() // Projects.WMS.ComparacaoEstoques.Data.U_CloseQue
     scAlias := ""
 Return
 
-User Function SetConditionsRES(_cWhStCarga as character, _cWhereGrupo as character)
+User Function SetConditionsRES(_cWhStCarga as character, _cWhereGrupo as character, _aConditions as array)
+    saConditions := _aConditions
     scWhStCarga := _cWhStCarga
     scWhereGrupo := _cWhereGrupo
 Return

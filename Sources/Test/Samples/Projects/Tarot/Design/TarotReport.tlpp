@@ -1,0 +1,105 @@
+#Include "TOTVS.ch"
+
+Using Namespace Projects.Tarot.Data
+Using Namespace Projects.Tarot.Controller
+Using Namespace Projects.Tarot.Functions
+
+Namespace Projects.Tarot.Design
+
+/*/{Protheus.doc} FSRL046
+Relatório de comparação entre os Estorques do Protheus e WMS.
+@type function
+@version 1.0
+@author Vinicius Corte
+@since 01/11/2022
+@param _cAlsPrt, character, alias referente à consulta de estoques do Protheus.
+@param _cAlsWms, character, alias referente à consulta de estoques do WMS.
+@param _bParam, codeblock, bloco de código para abertura da janela de parâmetros.
+@return logical, se .T., relatório executado com sucesso, se .F., com falhas.
+/*/
+User Function Design(_cAlsTarot as character, _bParam as codeblock) // Projects.Tarot.Design.U_Design FUNÇÃO PRINCIPAL DE GERAÇÃO DO RELATÓRIO
+
+    Local _oReport := nil as object
+
+    Private pcAlsTarot := ""   as character
+    Private pbParam  := {||} as codeblock
+
+    pcAlsTarot := _cAlsTarot
+    pbParam  := _bParam
+
+    _oReport:= ReportDef()
+    _oReport:PrintDialog()
+
+Return .T.
+
+
+/*/{Protheus.doc} ReportDef
+Define a estrutura de seções e campos que devem ser consideradas na impressão do relatório.
+@type function
+@version 1.0
+@author Vinicius Corte
+@since 01/11/2022
+@return object, objeto da classe TReport()
+/*/
+Static Function ReportDef()
+
+    Local _oReport    := nil  as object
+    Local _cTitle     := ""   as character
+    Local _oSection1
+
+    _cTitle := "Cartas de Tarot"
+
+    // Criacao do componente de impressao
+    // ExpC1 : Nome do relatorio
+    // ExpC2 : Titulo
+    // ExpC3 : Pergunte
+    // ExpB4 : Bloco de codigo que sera executado na confirmacao da impressao
+    // ExpC5 : Descricao
+    _oReport := TReport():New("TAROT",_cTitle, pbParam, {|_oReport| Projects.Tarot.Controller.U_ReportPrint(_oReport)}, _cTitle)
+
+    _oReport:SetLandscape() // SETA O FUNDO DO RELATÓRIO
+    _oReport:SetDynamic() // SETA A DINÂMICA DO RELATÓRIO
+    _oReport:ShowParamPage() // MOSTRA A TELA DE PARÂMETROS
+    _oReport:lParamPage := .T. // SETA A TELA DE PARÂMETROS COMO VERDADEIRO
+
+    // Criacao da secao utilizada pelo relatorio: TRSection():New
+    //  - ExpO1 : Objeto TReport que a secao pertence
+    //  - ExpC2 : Descricao da seçao
+    //  - ExpA3 : Array com as tabelas utilizadas pela secao. A primeira tabela
+    //            sera considerada como principal para a seção.
+    //  - ExpA4 : Array com as Ordens do relatório
+    //  - ExpL5 : Carrega campos do SX3 como celulas
+    //            Default : False
+    //  - ExpL6 : Carrega ordens do Sindex
+    //            Default : False
+    // Criacao da celulas da secao do relatorio: TRCell():New
+    //  - ExpO1 : Objeto TSection que a secao pertence
+    //  - ExpC2 : Nome da celula do relatório. O SX3 será consultado
+    //  - ExpC3 : Nome da tabela de referencia da celula
+    //  - ExpC4 : Titulo da celula
+    //            Default : X3Titulo()
+    //  - ExpC5 : Picture
+    //            Default : X3_PICTURE
+    //  - ExpC6 : Tamanho
+    //            Default : X3_TAMANHO
+    //  - ExpL7 : Informe se o tamanho esta em pixel
+    //            Default : False
+    //  - ExpB8 : Bloco de código para impressao.
+    //            Default : ExpC2
+    _oSection1 := TRSection():New(_oReport,"Itens",{pcAlsTarot},/*aOrdem*/{"Default"}) // SETA AS INFORMAÇÕES DA SEÇÃO 1 (ITENS)
+
+    _oSection1:SetTotalInLine(.F.)
+
+    TRCell():New(_oSection1, "B1_FILIAL" , pcAlsTarot, 'FILIAL'    ,                         , 50, /*lPixel*/, /*{|| code-block de impressao }*/ )
+    TRCell():new(_oSection1, "B1_CODMES" , pcAlsTarot, 'COD.MES'   ,                         , 50, /*lPixel*/, /*{|| code-block de impressao }*/ )
+    TRCell():new(_oSection1, "B1_SUFIXO" , pcAlsTarot, 'SUFIXO'    ,                         , 50, /*lPixel*/, /*{|| code-block de impressao }*/ )
+    TRCell():new(_oSection1, "B1_COD"    , pcAlsTarot, 'COD.INT'   , PesqPict('SB1',"B1_COD"), 50, /*lPixel*/, /*{|| code-block de impressao }*/ )
+    TRCell():new(_oSection1, "B1_REFFAB" , pcAlsTarot, 'REF.FAB'   ,                         , 50, /*lPixel*/, /*{|| code-block de impressao }*/ )
+    TRCell():new(_oSection1, "B1_DESC"   , pcAlsTarot, 'DESCRIÇÃO' ,                         , 50, /*lPixel*/, /*{|| code-block de impressao }*/ )
+    TRCell():new(_oSection1, "Z5_ABREV"  , pcAlsTarot, 'ABREVI'    ,                         , 50, /*lPixel*/, /*{|| code-block de impressao }*/ )
+    TRCell():new(_oSection1, "B1_TIPO"   , pcAlsTarot, 'TIPO'      ,                         , 50, /*lPixel*/, /*{|| code-block de impressao }*/ )
+    TRCell():new(_oSection1, "BM_DESC"   , pcAlsTarot, 'GRUPO'     ,                         , 50, /*lPixel*/, /*{|| code-block de impressao }*/ )
+    TRCell():new(_oSection1, "VE1_DESMAR", pcAlsTarot, 'MARCA'     ,                         , 50, /*lPixel*/, /*{|| code-block de impressao }*/ )
+    
+
+Return _oReport

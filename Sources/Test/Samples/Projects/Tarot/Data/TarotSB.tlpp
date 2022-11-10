@@ -1,0 +1,77 @@
+#Include "TOTVS.ch"
+
+Namespace Projects.Tarot.Data 
+
+Static scAlias := "" as character
+
+/*/{Protheus.doc} GetAliasTRB
+Pega o alias da tabela TRB
+@type function
+@version 1.0
+@author Vinicius Corte
+@since 01/11/2022
+@param _cAlias, character, alias para acesso ao Tarot da consulta (informar via ref. de memória).
+@return logical, se .T., possui dados e .F. não possui.
+/*/
+User Function GetAliasTarot() // Projects.SeparacaoAntecipada.Data.U_GetAliasSaldosProtheus
+    Local _cAlias := "" as character
+    if Empty(scAlias)
+        _cAlias := GetNextAlias()
+        scAlias := _cAlias
+    else
+        _cAlias := scAlias
+    endif
+Return scAlias
+
+User Function CloseQueryTarot() // Projects.WMS.ComparacaoEstoques.Data.U_CloseQuerySaldosProtheus
+    if Select(scAlias) > 0
+        (scAlias)->(DbCloseArea())
+    endif
+    scAlias := ""
+Return
+
+User Function SetConditions( _aConditions as array)
+    saConditions := _aConditions
+Return
+
+User Function RunQueryTarot(_oSection1 as object)
+
+    _oSection1:BeginQuery()
+
+    Local _lRet := .F. as logical
+
+    BeginSQL Alias scAlias
+        %noParser%
+
+        SELECT TOP 200
+            ' ' B1_FILIAL
+            ,' ' B1_CODMES
+            ,' ' B1_SUFIXO
+            ,B1_COD
+            ,' ' B1_REFFAB
+            ,B1_DESC
+            ,' ' Z5_ABREV
+            ,B1_TIPO
+            ,'0001 ' B1_GRUPO
+            ,'GRUPO PADRÃO ' BM_DESC
+            ,' ' VE1_DESMAR
+        FROM %table:SB1% SB1
+        WHERE SB1.B1_FILIAL = %xFilial:SB1%
+            AND SB1.B1_COD BETWEEN %exp:saConditions[1]% AND %exp:saConditions[2]%
+            AND SB1.B1_GRUPO = %exp:saConditions[3]%
+            AND SB1.%notDel%
+        ORDER BY SB1.R_E_C_N_O_ DESC
+
+    ENDSQL
+
+    _oSection1:EndQuery()
+
+    DbSelectArea(scAlias)
+
+    (scAlias)->(DbGoTop())
+
+    if !(scAlias)->(EOF()) 
+        _lRet := .T.
+    endif
+
+Return _lRet

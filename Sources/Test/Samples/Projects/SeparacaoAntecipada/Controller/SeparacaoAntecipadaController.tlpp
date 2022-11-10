@@ -32,6 +32,8 @@ User Function Main()
 
     U_CloseQueryTRB()
 
+    U_CloseQueryRES()
+
     RestArea(_aArea)
 
 Return

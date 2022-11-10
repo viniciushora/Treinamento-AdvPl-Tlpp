@@ -1,0 +1,70 @@
+#Include "TOTVS.ch"
+
+Static saParam := {} as array
+
+Namespace Projects.Tarot.Functions
+
+/*/{Protheus.doc} SetParametros
+Abre janela de parâmetros para a interface com o usuário.
+@type function
+@version 1.0
+@author Vinicius Corte
+@since 01/11/2022
+@return logical, se .T., o usuário fez a confirmação da jalena de parâmetros, se .F. não fez a confirmação.
+/*/
+User Function SetParametros()
+
+    Local _aParam := {} as array
+    Local _aRetParam := {} as array
+    Local _lRet := .F. as logical
+
+    if Type("gcMVSource") == "U"
+        gcMVSource := ""
+    endif
+
+    if Type("gcMVMult") == "U"
+        gcMVMult := ""
+    endif
+
+    gcMVSource += FunName() + ";"
+    gcMVMult += "MV_PAR13" + ";"
+    aAdd(_aParam,{01,"Produto de"       ,Space(15)       ,/*cPicture*/,".T.",/*cF3*/"SB1",".T.",65,.F.}) // 11
+    aAdd(_aParam,{01,"Produto até"      ,PadL('Z',15,'Z'),/*cPicture*/,".T.",/*cF3*/"SB1",".T.",65,.F.}) // 12
+
+    // 1 - <aParametros> - Vetor com as configurações
+    // 2 - <cTitle>      - Título da janela
+    // 3 - <aRet>        - Vetor passador por referencia que contém o retorno dos parâmetros
+    // 4 - <bOk>         - Code block para validar o botão Ok
+    // 5 - <aButtons>    - Vetor com mais botões além dos botões de Ok e Cancel
+    // 6 - <lCentered>   - Centralizar a janela
+    // 7 - <nPosX>       - Se não centralizar janela coordenada X para início
+    // 8 - <nPosY>       - Se não centralizar janela coordenada Y para início
+    // 9 - <oDlgWizard>  - Utiliza o objeto da janela ativa
+    //10 - <cLoad>       - Nome do perfil se caso for carregar
+    //11 - <lCanSave>    - Salvar os dados informados nos parâmetros por perfil
+    //12 - <lUserSave>   - Configuração por usuário
+    If ParamBox(_aParam, "TAROT - Parâmetros", @_aRetParam,/*bOk*/,/*aButtons*/,/*lCentered*/,/*nPosX*/,/*nPosY*/,;
+                /*oDlgWizard*/,/*cLoad*/,/*lCanSave*/.T.,/*lUserSave*/.T.) // MOSTRA A TELA DE PARÂMETROS PARA PREENCHER
+
+        aAdd(saParam, _aRetParam[1]) // PERGUNTA 1
+        aAdd(saParam,  _aRetParam[2]) // PERGUNTA 2
+        aAdd(saParam, "0008")
+
+        _lRet := .T.
+    EndIf
+
+Return _lRet // RETURNA O VALIDADOR DE EXECUÇÃO
+
+/*/{Protheus.doc} GetParametros
+Retorna o conteúdo da janela de parâmetros.
+@type function
+@version 1.0
+@author Vinicius Corte
+@since 01/11/2022
+@return array, lista de conteúdo dos parâmetros.
+/*/
+User Function GetParametros()
+    Local _aParam := {} as array
+    _aParam := aClone(saParam)
+Return _aParam
+

@@ -1,0 +1,126 @@
+#Include "TOTVS.ch"
+
+Using Namespace Projects.Tarot.Functions
+Using Namespace Projects.Tarot.Design
+Using Namespace Projects.Tarot.Data
+
+Namespace Projects.Tarot.Controller
+
+/*/{Protheus.doc} Main
+Controller principal do projeto.
+@type function
+@version 1.0
+@author Vinicius Corte
+@since 01/11/2022
+/*/
+User Function Main()
+
+    Local _aArea    := {}   as array
+    Local _bParam   := {||} as codeblock
+    Local _cAlsTarot  := ""   as character
+
+    _aArea := GetArea()
+
+    _cAlsTarot := U_GetAliasTarot()
+
+    _bParam := {|| Projects.SeparacaoAntecipada.Controller.U_Parametros() }
+
+    U_Design(_cAlsTarot, _bParam)
+
+    U_CloseQueryTarot()
+
+    RestArea(_aArea)
+
+Return
+
+/*/{Protheus.doc} Parametros
+Controler da janela de parâmetros.
+@type function
+@version 1.0
+@author Vinicius Corte
+@since 26/10/2022
+/*/
+User Function Parametros()
+
+    Local _aParam      := {}  as array
+    Local _lRet        := .F. as logical
+
+    if U_SetParametros()
+
+        _aParam := U_GetParametros()
+
+        U_SetConditions(_aParam)
+
+        _lRet := .T.
+
+    endif
+
+Return _lRet
+
+/*/{Protheus.doc} ReportPrint
+Popula os dados nas seções e campos correspondentes.
+@type function
+@version 1.0
+@author Vinicius Corte
+@since 26/10/2022
+@param _oReport, object, objeto da classe TReport()
+/*/
+User Function ReportPrint(_oReport as object)
+
+    Local _oSection1 := _oReport:Section(1)
+
+    _oSection1:Init()
+    _oSection1:SetHeaderSection(.T.)
+
+    if !U_RunQueryTarot(_oSection1)
+        FWAlertError("Sem dados a exibir.","Sem dados!")
+        Return
+    endif
+
+    while !(pcAlsTarot)->(EOF())
+
+        If _oReport:Cancel()
+            Exit
+        EndIf
+
+        _oReport:IncMeter()
+
+        _oSection1:Cell("B1_FILIAL"):SetValue((pcAlsTarot)->B1_FILIAL)
+        _oSection1:Cell("B1_FILIAL"):SetAlign("CENTER")
+
+        _oSection1:Cell("B1_CODMES"):SetValue((pcAlsTarot)->B1_CODMES)
+        _oSection1:Cell("B1_CODMES"):SetAlign("CENTER")
+
+        _oSection1:Cell("B1_SUFIXO"):SetValue((pcAlsTarot)->B1_SUFIXO)
+        _oSection1:Cell("B1_SUFIXO"):SetAlign("CENTER")
+
+        _oSection1:Cell("B1_COD"):SetValue((pcAlsTarot)->B1_COD)
+        _oSection1:Cell("B1_COD"):SetAlign("CENTER")
+
+        _oSection1:Cell("B1_REFFAB"):SetValue((pcAlsTarot)->B1_REFFAB)
+        _oSection1:Cell("B1_REFFAB"):SetAlign("LEFT")
+
+        _oSection1:Cell("B1_DESC"):SetValue((pcAlsTarot)->B1_DESC)
+        _oSection1:Cell("B1_DESC"):SetAlign("LEFT")
+
+        // oSection1:Cell("Z5_ABREV"):SetValue(Posicione("SZ5",1,xFilial("SZ5")+(pcAlsTarot)->B1_GRUFAM,"Z5_ABREV"))
+        // oSection1:Cell("Z5_ABREV"):SetAlign("LEFT")
+
+        _oSection1:Cell("B1_TIPO"):SetValue((pcAlsTarot)->B1_TIPO)
+        _oSection1:Cell("B1_TIPO"):SetAlign("LEFT")
+
+        _oSection1:Cell("BM_DESC"):SetValue(Posicione("SBM",1,xFilial("SBM")+(pcAlsTarot)->B1_GRUPO,"BM_DESC"))
+        _oSection1:Cell("BM_DESC"):SetAlign("LEFT")
+
+        // oSection1:Cell("VE1_DESMAR"):SetValue(Posicione("VE1",2,xFilial("VE1")+(pcAlsTarot)->B1_ABREVI,"VE1_DESMAR"))
+        // oSection1:Cell("VE1_DESMAR"):SetAlign("LEFT")
+
+        _oSection1:PrintLine()
+
+        (pcAlsTarot)->(dbSkip())
+
+    enddo
+
+        _oSection1:Finish() // finaliza a section 1 e imprime os totalizadores conforme definido em Tarotreak e TRFunction
+
+Return
